@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Facilities{% endblock %}
+{% block page_title %}Facilities{% endblock %}
+
+{% block content %}
+<!-- Filter bar -->
+<div class="d-flex gap-2 mb-4 flex-wrap align-items-center justify-content-between">
+  <div class="d-flex gap-2 flex-wrap">
+    {% for t, label in [('all','All'), ('lab','Labs'), ('hall','Halls'), ('sports','Sports'), ('lecture_room','Lecture Rooms')] %}
+    <a href="{{ url_for('facilities.list_facilities', type=t) }}"
+       class="btn btn-sm {% if type_filter == t %}btn-accent{% else %}btn-outline-secondary{% endif %}"
+       style="border-radius:20px;font-size:.78rem">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+  {% if current_user.is_admin() %}
+  <a href="{{ url_for('facilities.add_facility') }}" class="btn btn-accent btn-sm" style="border-radius:8px">
+    <i class="bi bi-plus me-1"></i>Add Facility
+  </a>
+  {% endif %}
+</div>
+
+<!-- Facility cards -->
+<div class="row g-3">
+  {% for f in facilities %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body p-3">
+
+        <!-- Type badge + status -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge rounded-pill px-2 py-1"
+                style="font-size:.68rem;background:
+                  {% if f.facility_type == 'lab' %}#e8f0fe;color:#1a3a5c
+                  {% elif f.facility_type == 'hall' %}#fef3c7;color:#92400e
+                  {% elif f.facility_type == 'sports' %}#d1fae5;color:#065f46
+                  {% else %}#fde8e8;color:#9b1c1c{% endif %}">
+            {{ f.facility_type|replace('_', ' ')|title }}
+          </span>
+          {% if not f.is_available %}
+          <span class="badge bg-secondary rounded-pill" style="font-size:.65rem">Unavailable</span>
+          {% endif %}
+        </div>
+
+        <h6 class="fw-700 mb-1" style="color:#1a3a5c">{{ f.name }}</h6>
+        <div class="small text-muted mb-2">
+          <i class="bi bi-geo-alt me-1"></i>{{ f.location }}
+        </div>
+
+        {% if f.description %}
+        <p class="small text-muted mb-2" style="line-height:1.5">
+          {{ f.description[:80] }}{% if f.description|length > 80 %}...{% endif %}
+        </p>
+        {% endif %}
+
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="small">
+            <i class="bi bi-people me-1 text-muted"></i>
+            <span class="fw-600">{{ f.capacity }}</span>
+            <span class="text-muted"> capacity</span>
+          </div>
+        </div>
+
+        <!-- Equipment tags -->
+        {% if f.equipment_list %}
+        <div class="mb-3">
+          {% for eq in f.equipment_list[:3] %}
+          <span class="badge bg-light text-secondary me-1 mb-1" style="font-size:.68rem;border:1px solid #e2e8f0">
+            {{ eq }}
+          </span>
+          {% endfor %}
+          {% if f.equipment_list|length > 3 %}
+          <span class="badge bg-light text-secondary" style="font-size:.68rem;border:1px solid #e2e8f0">
+            +{{ f.equipment_list|length - 3 }} more
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2">
+          {% if f.is_available %}
+          <a href="{{ url_for('bookings.create_booking') }}?facility={{ f.id }}"
+             class="btn btn-accent btn-sm flex-grow-1" style="border-radius:8px;font-size:.78rem">
+            <i class="bi bi-plus me-1"></i>Book
+          </a>
+          {% endif %}
+          {% if current_user.is_admin() %}
+          <a href="{{ url_for('facilities.edit_facility', facility_id=f.id) }}"
+             class="btn btn-outline-secondary btn-sm" style="border-radius:8px;font-size:.78rem">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form method="POST" action="{{ url_for('facilities.delete_facility', facility_id=f.id) }}"
+                onsubmit="return confirm('Delete {{ f.name }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px;font-size:.78rem">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-building d-block mb-2" style="font-size:2.5rem;opacity:.3"></i>
+        No facilities found.
+        {% if current_user.is_admin() %}
+        <a href="{{ url_for('facilities.add_facility') }}">Add one now →</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
