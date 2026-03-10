@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if facility else 'Add' }} Facility{% endblock %}
+{% block page_title %}{{ 'Edit' if facility else 'Add' }} Facility{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-building me-2"></i>
+        {{ 'Edit: ' + facility.name if facility else 'Add New Facility' }}
+      </div>
+      <div class="card-body p-4">
+
+        <form method="POST"
+              action="{{ url_for('facilities.edit_facility', facility_id=facility.id) if facility else url_for('facilities.add_facility') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label class="form-label small fw-600">Facility Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control"
+                   value="{{ facility.name if facility else '' }}"
+                   placeholder="e.g. Computer Lab A" required>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-600">Type <span class="text-danger">*</span></label>
+              <select name="facility_type" class="form-control" required>
+                {% for val, label in [('lab','Lab'), ('hall','Hall'), ('sports','Sports'), ('lecture_room','Lecture Room')] %}
+                <option value="{{ val }}"
+                        {% if facility and facility.facility_type == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-600">Capacity <span class="text-danger">*</span></label>
+              <input type="number" name="capacity" class="form-control"
+                     value="{{ facility.capacity if facility else '' }}"
+                     placeholder="30" min="1" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-600">Location <span class="text-danger">*</span></label>
+            <input type="text" name="location" class="form-control"
+                   value="{{ facility.location if facility else '' }}"
+                   placeholder="e.g. Block A, Room 101" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-600">Description</label>
+            <textarea name="description" class="form-control" rows="2"
+                      placeholder="Brief description of the facility...">{{ facility.description if facility else '' }}</textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-600">Equipment / Resources</label>
+            <input type="text" name="equipment" class="form-control"
+                   value="{{ facility.equipment if facility else '' }}"
+                   placeholder="Comma-separated, e.g. Projector, Whiteboard, WiFi">
+            <div class="form-text small">Separate items with commas</div>
+          </div>
+
+          {% if facility %}
+          <div class="mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_available" id="isAvailable"
+                     {{ 'checked' if facility.is_available else '' }}>
+              <label class="form-check-label small fw-600" for="isAvailable">
+                Available for booking
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-accent px-4" style="border-radius:8px">
+              <i class="bi bi-check me-2"></i>{{ 'Save Changes' if facility else 'Add Facility' }}
+            </button>
+            <a href="{{ url_for('facilities.list_facilities') }}"
+               class="btn btn-outline-secondary px-4" style="border-radius:8px">
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
