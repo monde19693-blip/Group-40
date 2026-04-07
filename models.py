@@ -136,3 +136,10 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f'<Notification {self.id} → user {self.user_id}>'
+
+class FacilityRating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    facility_id = db.Column(db.Integer, db.ForeignKey('facility.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text)
